@@ -11,6 +11,9 @@ CREATE TABLE satellite_images (
 
 CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
-  image_id INTEGER REFERENCES satellite_images(id),
+  image_id VARCHAR(255) REFERENCES satellite_images(catalog_id),
   order_date TIMESTAMP DEFAULT NOW()
 );
+
+CREATE INDEX idx_satellite_images_geometry 
+ON satellite_images USING GIST (geometry);

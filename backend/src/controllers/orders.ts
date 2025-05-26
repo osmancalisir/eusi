@@ -2,11 +2,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { query } from '../db.js';
-import { z } from 'zod';
-
-const OrderSchema = z.object({
-  imageId: z.number().int().positive()
-});
+import { OrderSchema } from '../schemas.js';
 
 export const createOrder = async (
   req: Request,
@@ -23,10 +19,10 @@ export const createOrder = async (
       return;
     }
 
-    const { imageId } = validation.data;
+    const { catalogId } = validation.data;
     const imageCheck = await query(
-      'SELECT id FROM satellite_images WHERE id = $1',
-      [imageId]
+      'SELECT catalog_id FROM satellite_images WHERE catalog_id = $1',
+      [catalogId]
     );
     
     if (imageCheck.rows.length === 0) {
@@ -36,7 +32,7 @@ export const createOrder = async (
 
     const result = await query(
       'INSERT INTO orders (image_id) VALUES ($1) RETURNING *',
-      [imageId]
+      [catalogId]
     );
 
     res.status(201).json(result.rows[0]);
@@ -54,7 +50,7 @@ export const getOrders = async (
     const result = await query(`
       SELECT orders.*, satellite_images.catalog_id, satellite_images.resolution 
       FROM orders
-      JOIN satellite_images ON orders.image_id = satellite_images.id
+      JOIN satellite_images ON orders.image_id = satellite_images.catalog_id
     `);
     
     res.json(result.rows);
