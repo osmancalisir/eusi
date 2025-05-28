@@ -2,7 +2,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { query } from '../db.js';
-import { OrderSchema } from '../schemas.js';
+import { OrderSchema, OrderFilterSchema } from '../schemas.js';
 
 export const createOrder = async (
   req: Request,
@@ -47,12 +47,32 @@ export const getOrders = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const result = await query(`
+    const filters = OrderFilterSchema.parse(req.query);
+    
+    let sql = `
       SELECT orders.*, satellite_images.catalog_id, satellite_images.resolution 
       FROM orders
       JOIN satellite_images ON orders.image_id = satellite_images.catalog_id
-    `);
-    
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (filters.imageId) {
+      sql += ` AND satellite_images.catalog_id = $${params.length + 1}`;
+      params.push(filters.imageId);
+    }
+
+    if (filters.startDate) {
+      sql += ` AND orders.order_date >= $${params.length + 1}`;
+      params.push(filters.startDate);
+    }
+
+    if (filters.endDate) {
+      sql += ` AND orders.order_date <= $${params.length + 1}`;
+      params.push(filters.endDate);
+    }
+
+    const result = await query(sql, params);
     res.json(result.rows);
   } catch (error) {
     next(error);
