@@ -13,4 +13,4 @@ router.get('/', getSatelliteImages);
 router.post('/search', searchImagesByGeoJSON);
 router.get('/:catalogId', getImageDetails);
 
-export const imageRouter = router;
+export { router as imageRouter };

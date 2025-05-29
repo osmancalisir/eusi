@@ -50,12 +50,17 @@ export const getOrders = async (
     const filters = OrderFilterSchema.parse(req.query);
     
     let sql = `
-      SELECT orders.*, satellite_images.catalog_id, satellite_images.resolution 
+      SELECT 
+        orders.id, 
+        orders.order_date,
+        orders.image_id,
+        satellite_images.catalog_id as "catalogID",
+        satellite_images.resolution
       FROM orders
-      JOIN satellite_images ON orders.image_id = satellite_images.catalog_id
+      INNER JOIN satellite_images ON orders.image_id = satellite_images.catalog_id
       WHERE 1=1
     `;
-    const params = [];
+    const params: any[] = [];
 
     if (filters.imageId) {
       sql += ` AND satellite_images.catalog_id = $${params.length + 1}`;
@@ -75,6 +80,7 @@ export const getOrders = async (
     const result = await query(sql, params);
     res.json(result.rows);
   } catch (error) {
+    console.error('Error in getOrders:', error);
     next(error);
   }
 };

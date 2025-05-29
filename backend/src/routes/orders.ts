@@ -8,4 +8,4 @@ const router = Router();
 router.post('/', createOrder);
 router.get('/', getOrders);
 
-export const orderRouter = router;
+export { router as orderRouter };

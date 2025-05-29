@@ -1,26 +1,36 @@
+version: '3.8'
 services:
-  db:
-    image: postgis/postgis:15-3.3
-    environment:
-      POSTGRES_USER: eusi
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: orbital
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./src/db/migrations:/docker-entrypoint-initdb.d
-  api:
+  app:
     build: .
     ports:
       - "4000:4000"
     environment:
-      DB_USER: eusi
-      DB_PASSWORD: secret
-      DB_HOST: db
-      DB_NAME: orbital
-      DB_PORT: 5432
+      - DB_USER=eusi
+      - DB_NAME=orbital
+      - DB_PASSWORD=your_actual_password_here
+      - DB_HOST=db
+      - DB_PORT=5432
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgis/postgis:15-3.3
+    environment:
+      POSTGRES_USER: eusi
+      POSTGRES_PASSWORD: your_actual_password_here
+      POSTGRES_DB: orbital
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eusi -d orbital"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
 volumes:
-  pgdata:
+  postgres_data:
+  

@@ -54,14 +54,41 @@ export const searchImagesByGeoJSON = async (
     }
 
     const result = await query(
-      `SELECT * FROM satellite_images 
+      `SELECT 
+        id,
+        catalog_id AS "catalogID",
+        acquisition_date_start AS "acquisitionDateStart",
+        acquisition_date_end AS "acquisitionDateEnd",
+        resolution,
+        cloud_coverage AS "cloudCoverage",
+        off_nadir AS "offNadir",
+        sensor,
+        scan_direction AS "scanDirection",
+        satellite_elevation AS "satelliteElevation",
+        image_bands AS "imageBands",
+        ST_AsGeoJSON(geometry)::json AS geometry
+       FROM satellite_images 
        WHERE ST_Intersects(
          geometry, 
-         ST_GeomFromGeoJSON($1)
+         ST_SetSRID(ST_GeomFromGeoJSON($1), 4326)::geography
        )`,
       [JSON.stringify(req.body)]
     );
     
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Search error:', error);
+    next(error);
+  }
+};
+
+export const getAllSatelliteImages = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const result = await query('SELECT * FROM satellite_images');
     res.json(result.rows);
   } catch (error) {
     next(error);
