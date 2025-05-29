@@ -3,7 +3,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { query } from '../db.js';
 import { ImageFilterSchema, GeoJSONSchema } from '../schemas.js';
-import type { Feature, Geometry } from 'geojson';
 
 export const getSatelliteImages = async (
   req: Request,

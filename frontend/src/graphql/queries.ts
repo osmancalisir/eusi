@@ -1,6 +1,6 @@
-// frontend/graphql/queries.ts
+// frontend/src/graphql/queries.ts
 
-import { gql } from '@apollo/client';
+import { gql } from "@apollo/client";
 
 export const SEARCH_BY_GEOJSON = gql`
   query SearchImagesByGeoJSON($geoJson: String!) {

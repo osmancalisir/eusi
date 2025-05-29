@@ -1,4 +1,4 @@
-#!/bin/sh
+# backend/db/init.sh
 
 echo "Waiting for database to be ready..."
 max_retries=15

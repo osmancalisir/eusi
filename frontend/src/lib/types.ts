@@ -1,4 +1,6 @@
-// src/lib/types.ts
+// frontend/src/lib/types.ts
+
+import GeoJSON from "ol/format/GeoJSON";
 
 export interface SatelliteImage {
   id: string;

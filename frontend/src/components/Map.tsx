@@ -1,33 +1,37 @@
-// src/components/Map.tsx
+// frontend/src/components/Map.tsx
 
-import React, { forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
-import 'ol/ol.css';
-import Map from 'ol/Map';
-import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
-import GeoJSON from 'ol/format/GeoJSON';
-import { Style, Fill, Stroke } from 'ol/style';
-import { fromLonLat } from 'ol/proj';
-import Feature from 'ol/Feature';
-import type { Geometry as GeoJSONGeometry } from 'geojson';
+import React, { forwardRef, useImperativeHandle, useEffect, useRef } from "react";
+import "ol/ol.css";
+import Map from "ol/Map";
+import View from "ol/View";
+import TileLayer from "ol/layer/Tile";
+import OSM from "ol/source/OSM";
+import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
+import GeoJSON from "ol/format/GeoJSON";
+import { Style, Fill, Stroke } from "ol/style";
+import { fromLonLat } from "ol/proj";
+import Feature from "ol/Feature";
+import type { Geometry as GeoJSONGeometry } from "geojson";
 
 interface MapProps {
   geojson: GeoJSONGeometry | null;
-  onFeatureSelect: (feature: any) => void;
+  onFeatureSelect: any;
+  themeMode?: "light" | "dark";
 }
 
 export interface MapRef {
   clearFeatures: () => void;
 }
 
-const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect }, ref) => {
+const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect, themeMode = "dark" }, ref) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<Map | null>(null);
   const vectorSource = useRef(new VectorSource());
   const vectorLayer = useRef(new VectorLayer({ source: vectorSource.current }));
+
+  const strokeColor = themeMode === "dark" ? "#840032" : "#002642";
+  const fillColor = themeMode === "dark" ? "rgba(132, 0, 50, 0.2)" : "rgba(0, 38, 66, 0.2)";
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -35,60 +39,62 @@ const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect },
     mapInstance.current = new Map({
       target: mapRef.current,
       layers: [
-        new TileLayer({ source: new OSM() }),
-        vectorLayer.current
+        new TileLayer({
+          source: new OSM(),
+          className: themeMode === "dark" ? "ol-layer-dark" : "",
+        }),
+        vectorLayer.current,
       ],
       view: new View({
         center: fromLonLat([11.5, 48.1]),
-        zoom: 10
-      })
+        zoom: 10,
+      }),
     });
 
     const clickHandler = (event: any) => {
       if (!mapInstance.current) return;
-      
-      const feature = mapInstance.current.forEachFeatureAtPixel(
-        event.pixel,
-        (f) => f
-      );
-      
+
+      const feature = mapInstance.current.forEachFeatureAtPixel(event.pixel, (f) => f);
+
       if (feature instanceof Feature) {
         onFeatureSelect(feature.getProperties());
       }
     };
 
-    mapInstance.current.on('click', clickHandler);
+    mapInstance.current.on("click", clickHandler);
 
     return () => {
       if (mapInstance.current) {
-        mapInstance.current.un('click', clickHandler);
+        mapInstance.current.un("click", clickHandler);
         mapInstance.current.setTarget(undefined);
       }
     };
-  }, [onFeatureSelect]);
+  }, [onFeatureSelect, themeMode]);
 
   useEffect(() => {
     vectorSource.current.clear();
-    
+
     if (geojson) {
       try {
         const feature = {
-          type: 'Feature',
+          type: "Feature",
           properties: {},
-          geometry: geojson
+          geometry: geojson,
         };
-        
+
         const features = new GeoJSON().readFeatures(feature, {
-          featureProjection: 'EPSG:3857',
-          dataProjection: 'EPSG:4326'
+          featureProjection: "EPSG:3857",
+          dataProjection: "EPSG:4326",
         });
 
-        features.forEach(feature => {
-          feature.setStyle(new Style({
-            fill: new Fill({ color: 'rgba(132, 0, 50, 0.2)' }),
-            stroke: new Stroke({ color: '#840032', width: 2 })
-          }));
-          feature.set('type', 'aoi');
+        features.forEach((feature) => {
+          feature.setStyle(
+            new Style({
+              fill: new Fill({ color: fillColor }),
+              stroke: new Stroke({ color: strokeColor, width: 2 }),
+            })
+          );
+          feature.set("type", "aoi");
         });
 
         vectorSource.current.addFeatures(features);
@@ -97,21 +103,31 @@ const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect },
         if (extent[0] !== Infinity && mapInstance.current) {
           mapInstance.current.getView().fit(extent, {
             padding: [50, 50, 50, 50],
-            duration: 500
+            duration: 500,
           });
         }
       } catch (error) {
-        console.error('Error rendering GeoJSON:', error);
+        console.error("Error rendering GeoJSON:", error);
       }
     }
-  }, [geojson]);
+  }, [geojson, fillColor, strokeColor]);
 
   useImperativeHandle(ref, () => ({
-    clearFeatures: () => vectorSource.current.clear()
+    clearFeatures: () => vectorSource.current.clear(),
   }));
 
-  return <div ref={mapRef} className="w-full h-[400px] rounded-lg" />;
+  return (
+    <div
+      ref={mapRef}
+      className="w-full h-full rounded-lg"
+      style={{
+        backgroundColor: themeMode === "dark" ? "#333" : "#f0f0f0",
+        borderRadius: "8px",
+        minHeight: "600px", // Ensure minimum height
+      }}
+    />
+  );
 });
 
-MapComponent.displayName = 'Map';
+MapComponent.displayName = "Map";
 export default MapComponent;
