@@ -1,3 +1,5 @@
+// backend/src/db.ts
+
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
@@ -12,9 +14,11 @@ console.log('Environment variables:', {
   DB_PASSWORD: process.env.DB_PASSWORD ? '*****' : 'not set'
 });
 
+const DB_HOST = process.env.DB_HOST === 'localhost' ? '127.0.0.1' : process.env.DB_HOST;
+
 const pool = new Pool({
   user: process.env.DB_USER || 'eusi',
-  host: process.env.DB_HOST || 'db',
+  host: DB_HOST,
   database: process.env.DB_NAME || 'orbital',
   password: process.env.DB_PASSWORD || 'postgres',
   port: Number(process.env.DB_PORT) || 5432,
@@ -25,7 +29,9 @@ pool.query('SELECT NOW()')
   .catch(err => {
     console.error('❌ Database connection failed:');
     console.error(err);
+    process.exit(1);
   });
+
 
 process.on('SIGINT', async () => {
   await pool.end();

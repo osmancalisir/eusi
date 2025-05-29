@@ -50,7 +50,7 @@ export default function Home() {
     }
   });
 
-    const searchImages = async () => {
+  const searchImages = async () => {
     if (!geojson) {
       toast.warn('Please upload a GeoJSON file first');
       return;
@@ -64,12 +64,12 @@ export default function Home() {
         body: JSON.stringify(geojson)
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.error || 'Search failed');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Search failed');
       }
       
+      const data = await response.json();
       setImages(data);
       toast.info(`Found ${data.length} images`);
     } catch (error: any) {

@@ -11,13 +11,19 @@ import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Style, Fill, Stroke } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
+import Feature from 'ol/Feature';
+import type { Geometry as GeoJSONGeometry } from 'geojson';
 
 interface MapProps {
-  geojson: any;
+  geojson: GeoJSONGeometry | null;
   onFeatureSelect: (feature: any) => void;
 }
 
-const MapComponent = forwardRef(({ geojson, onFeatureSelect }: MapProps, ref) => {
+export interface MapRef {
+  clearFeatures: () => void;
+}
+
+const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect }, ref) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<Map | null>(null);
   const vectorSource = useRef(new VectorSource());
@@ -33,15 +39,33 @@ const MapComponent = forwardRef(({ geojson, onFeatureSelect }: MapProps, ref) =>
         vectorLayer.current
       ],
       view: new View({
-        center: fromLonLat([11.5, 48.1]), // Center on Munich
+        center: fromLonLat([11.5, 48.1]),
         zoom: 10
       })
     });
 
-    return () => {
-      mapInstance.current?.setTarget(undefined);
+    const clickHandler = (event: any) => {
+      if (!mapInstance.current) return;
+      
+      const feature = mapInstance.current.forEachFeatureAtPixel(
+        event.pixel,
+        (f) => f
+      );
+      
+      if (feature instanceof Feature) {
+        onFeatureSelect(feature.getProperties());
+      }
     };
-  }, []);
+
+    mapInstance.current.on('click', clickHandler);
+
+    return () => {
+      if (mapInstance.current) {
+        mapInstance.current.un('click', clickHandler);
+        mapInstance.current.setTarget(undefined);
+      }
+    };
+  }, [onFeatureSelect]);
 
   useEffect(() => {
     vectorSource.current.clear();
@@ -64,13 +88,14 @@ const MapComponent = forwardRef(({ geojson, onFeatureSelect }: MapProps, ref) =>
             fill: new Fill({ color: 'rgba(132, 0, 50, 0.2)' }),
             stroke: new Stroke({ color: '#840032', width: 2 })
           }));
+          feature.set('type', 'aoi');
         });
 
         vectorSource.current.addFeatures(features);
 
         const extent = vectorSource.current.getExtent();
-        if (extent[0] !== Infinity) {
-          mapInstance.current?.getView().fit(extent, {
+        if (extent[0] !== Infinity && mapInstance.current) {
+          mapInstance.current.getView().fit(extent, {
             padding: [50, 50, 50, 50],
             duration: 500
           });

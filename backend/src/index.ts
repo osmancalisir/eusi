@@ -15,6 +15,11 @@ app.use(express.json());
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  
+  if (req.method === 'POST' && req.path.includes('/search')) {
+    console.log('Request body:', JSON.stringify(req.body));
+  }
+  
   next();
 });
 

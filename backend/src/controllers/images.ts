@@ -3,6 +3,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { query } from '../db.js';
 import { ImageFilterSchema, GeoJSONSchema } from '../schemas.js';
+import type { Feature, Geometry } from 'geojson';
 
 export const getSatelliteImages = async (
   req: Request,
@@ -31,9 +32,11 @@ export const getSatelliteImages = async (
       params.push(minLon, minLat, maxLon, maxLat);
     }
 
+    console.log('Executing image search query:', sql, params);
     const result = await query(sql, params);
     res.json(result.rows);
   } catch (error) {
+    console.error('Image search error:', error);
     next(error);
   }
 };
@@ -44,15 +47,24 @@ export const searchImagesByGeoJSON = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    console.log('Received GeoJSON search request:', req.body);
+    
     const validation = GeoJSONSchema.safeParse(req.body);
     if (!validation.success) {
+      console.error('GeoJSON validation failed:', validation.error.errors);
       res.status(400).json({
-        error: 'Invalid GeoJSON',
-        details: validation.error.errors
+        error: 'Invalid GeoJSON input',
+        details: validation.error.errors.map(e => ({
+          path: e.path.join('.'),
+          message: e.message
+        }))
       });
       return;
     }
 
+    const geometry = validation.data;
+    console.log('Validated GeoJSON geometry:', JSON.stringify(geometry));
+    
     const result = await query(
       `SELECT 
         id,
@@ -72,13 +84,25 @@ export const searchImagesByGeoJSON = async (
          geometry, 
          ST_SetSRID(ST_GeomFromGeoJSON($1), 4326)::geography
        )`,
-      [JSON.stringify(req.body)]
+      [JSON.stringify(geometry)]
     );
     
+    console.log(`Found ${result.rows.length} matching images`);
     res.json(result.rows);
-  } catch (error) {
-    console.error('Search error:', error);
-    next(error);
+  } catch (error: any) {
+    console.error('GeoJSON search error:', {
+      message: error.message,
+      stack: error.stack,
+      body: req.body
+    });
+    
+    res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: 'Failed to process spatial query',
+      ...(process.env.NODE_ENV === 'development' && { 
+        details: error.message 
+      })
+    });
   }
 };
 

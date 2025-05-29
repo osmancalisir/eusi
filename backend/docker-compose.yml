@@ -7,7 +7,7 @@ services:
     environment:
       - DB_USER=eusi
       - DB_NAME=orbital
-      - DB_PASSWORD=your_actual_password_here
+      - DB_PASSWORD=postgres
       - DB_HOST=db
       - DB_PORT=5432
     depends_on:
@@ -18,7 +18,7 @@ services:
     image: postgis/postgis:15-3.3
     environment:
       POSTGRES_USER: eusi
-      POSTGRES_PASSWORD: your_actual_password_here
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: orbital
     ports:
       - "5432:5432"
