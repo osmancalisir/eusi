@@ -16,7 +16,7 @@ import type { Geometry as GeoJSONGeometry } from "geojson";
 
 interface MapProps {
   geojson: GeoJSONGeometry | null;
-  onFeatureSelect: any;
+  onFeatureSelect: (feature: any) => void;
   themeMode?: "light" | "dark";
 }
 
@@ -123,7 +123,7 @@ const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect, t
       style={{
         backgroundColor: themeMode === "dark" ? "#333" : "#f0f0f0",
         borderRadius: "8px",
-        minHeight: "600px", // Ensure minimum height
+        minHeight: "600px",
       }}
     />
   );

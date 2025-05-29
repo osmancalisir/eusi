@@ -13,7 +13,7 @@ interface SearchResultsPanelProps {
 
 const SearchResultsPanel = ({ images, geojson, setSelectedImage, appTheme }: SearchResultsPanelProps) => {
   return (
-    <Paper elevation={3} sx={{ p: 2, borderRadius: 2, backgroundColor: appTheme.palette.card.bgColor }}>
+    <Paper elevation={3} sx={{ width: "100%", p: 2, borderRadius: 2, backgroundColor: appTheme.palette.card.bgColor }}>
       <Typography
         variant="h6"
         component="h2"

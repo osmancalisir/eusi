@@ -12,12 +12,14 @@ import OrderList from "@/components/OrderList";
 import ImageDetailsCard from "@/components/ImageDetailsCard";
 import SearchResultsPanel from "@/components/SearchResultsPanel";
 import GeoJsonUploadPanel from "@/components/GeoJsonUploadPanel";
+import AoiDetailsCard from "@/components/AoiDetailsCard";
 import { Box, Typography, Paper } from "@mui/material";
 
 export default function Home() {
   const [geojson, setGeojson] = useState<any>(null);
   const [images, setImages] = useState<SatelliteImage[]>([]);
   const [selectedImage, setSelectedImage] = useState<SatelliteImage | null>(null);
+  const [selectedAoi, setSelectedAoi] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const mapRef = useRef<any>(null);
@@ -26,6 +28,12 @@ export default function Home() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const handleSetGeojson = (newGeojson: any) => {
+    setGeojson(newGeojson);
+    setSelectedImage(null);
+    setSelectedAoi(null);
+  };
 
   const searchImages = async () => {
     if (!geojson) {
@@ -61,7 +69,22 @@ export default function Home() {
     setGeojson(null);
     setImages([]);
     setSelectedImage(null);
+    setSelectedAoi(null);
     mapRef.current?.clearFeatures();
+  };
+
+  const handleFeatureSelect = (feature: any) => {
+    if (feature.type === "aoi") {
+      setSelectedAoi(feature);
+      setSelectedImage(null);
+    } else {
+      setSelectedImage(feature);
+      setSelectedAoi(null);
+    }
+  };
+
+  const handleBackFromAoi = () => {
+    setSelectedAoi(null);
   };
 
   return (
@@ -83,7 +106,6 @@ export default function Home() {
           flexDirection: "column",
         }}
       >
-        {/* Header */}
         <Box
           sx={{
             display: "flex",
@@ -103,26 +125,24 @@ export default function Home() {
               fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2.125rem" },
             }}
           >
-            <span style={{ color: themeMode === "dark" ? "#002642" : "#840032" }}>Orbital</span> Edge Imaging
+            <span style={{ color: appTheme.palette.main.iconColor }}>Orbital Edge Imaging</span>
           </Typography>
           <ThemeToggle theme={themeMode} toggleTheme={toggleTheme} color={appTheme.palette.main.iconColor} />
         </Box>
 
-        {/* Main Content */}
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: {
               xs: "1fr",
-              md: selectedImage ? "1.5fr 1fr" : "1fr 1fr",
-              lg: selectedImage ? "2fr 1fr" : "1.5fr 1fr",
+              md: "1fr 400px",
+              lg: "1.5fr 400px",
             },
             gap: 3,
             flex: 1,
             minHeight: 0,
           }}
         >
-          {/* Left Column - Map and Controls */}
           <Box
             sx={{
               display: "flex",
@@ -143,12 +163,7 @@ export default function Home() {
                 minHeight: { xs: "300px", sm: "400px", md: "auto" },
               }}
             >
-              <Map
-                ref={mapRef}
-                geojson={geojson}
-                onFeatureSelect={(f: any) => setSelectedImage(f)}
-                themeMode={themeMode}
-              />
+              <Map ref={mapRef} geojson={geojson} onFeatureSelect={handleFeatureSelect} themeMode={themeMode} />
             </Paper>
 
             <GeoJsonUploadPanel
@@ -157,11 +172,10 @@ export default function Home() {
               onClear={handleClear}
               loading={loading}
               hasGeojson={!!geojson}
-              setGeojson={setGeojson}
+              setGeojson={handleSetGeojson}
             />
           </Box>
 
-          {/* Right Column - Details and Orders */}
           <Box
             sx={{
               display: "flex",
@@ -179,7 +193,14 @@ export default function Home() {
                 minHeight: 0,
               }}
             >
-              {selectedImage ? (
+              {selectedAoi ? (
+                <AoiDetailsCard
+                  selectedAoi={selectedAoi}
+                  onRemove={handleClear}
+                  appTheme={appTheme}
+                  onBackToList={handleBackFromAoi}
+                />
+              ) : selectedImage ? (
                 <ImageDetailsCard
                   selectedImage={selectedImage}
                   setSelectedImage={setSelectedImage}
