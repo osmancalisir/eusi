@@ -2,18 +2,26 @@
 
 "use client";
 import React from "react";
-import { Paper, Typography, Button, Box } from "@mui/material";
+import { Typography, Button, Box } from "@mui/material";
 import { toast } from "react-toastify";
 import { SatelliteImage } from "@/lib/types";
+import Paper from "@/components/Paper";
 
 interface ImageDetailsCardProps {
   selectedImage: SatelliteImage;
   setSelectedImage: (image: SatelliteImage | null) => void;
   appTheme: any;
   themeMode: "light" | "dark";
+  onOrderSuccess?: () => void;
 }
 
-const ImageDetailsCard = ({ selectedImage, setSelectedImage, appTheme, themeMode }: ImageDetailsCardProps) => {
+const ImageDetailsCard = ({
+  selectedImage,
+  setSelectedImage,
+  appTheme,
+  themeMode,
+  onOrderSuccess,
+}: ImageDetailsCardProps) => {
   const handleOrder = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/orders`, {
@@ -28,13 +36,14 @@ const ImageDetailsCard = ({ selectedImage, setSelectedImage, appTheme, themeMode
       }
 
       toast.success("Order placed successfully!");
+      onOrderSuccess?.();
     } catch (error: any) {
       toast.error(error.message || "Order failed");
     }
   };
 
   return (
-    <Paper elevation={3} sx={{ width: "100%", p: 2, borderRadius: 2, backgroundColor: appTheme.palette.card.bgColor }}>
+    <Paper appTheme={appTheme} elevation={3} sx={{ width: "100%", p: 2, borderRadius: 2 }}>
       <Typography
         variant="h6"
         component="h2"
@@ -43,8 +52,8 @@ const ImageDetailsCard = ({ selectedImage, setSelectedImage, appTheme, themeMode
         Image Details
       </Typography>
       <Button
-        size="small"
         onClick={() => setSelectedImage(null)}
+        size="small"
         sx={{ color: appTheme.palette.main.textColor, mb: 1 }}
       >
         ← Back to list
@@ -77,14 +86,19 @@ const ImageDetailsCard = ({ selectedImage, setSelectedImage, appTheme, themeMode
       </Box>
 
       <Button
+        onClick={handleOrder}
         variant="contained"
         fullWidth
-        onClick={handleOrder}
         sx={{
-          backgroundColor: themeMode === "dark" ? "#002642" : "#840032",
-          color: "white",
+          backgroundColor: appTheme.palette.button.bgColor,
+          color: appTheme.palette.button.textColor,
           "&:hover": {
-            backgroundColor: themeMode === "dark" ? "#001a33" : "#6a0028",
+            backgroundColor: appTheme.palette.button.bgHoverColor,
+          },
+          "&:disabled": {
+            opacity: 0.5,
+            backgroundColor: appTheme.palette.icon.hoverColor,
+            color: appTheme.palette.main.textColor,
           },
         }}
       >

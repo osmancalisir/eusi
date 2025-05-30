@@ -25,7 +25,7 @@ export interface MapRef {
 }
 
 const loadViewState = () => {
-  const saved = localStorage.getItem('mapViewState');
+  const saved = localStorage.getItem("mapViewState");
   return saved ? JSON.parse(saved) : null;
 };
 
@@ -33,7 +33,7 @@ const saveViewState = (view: View) => {
   const center = view.getCenter();
   const zoom = view.getZoom();
   if (center && zoom !== undefined) {
-    localStorage.setItem('mapViewState', JSON.stringify({ center, zoom }));
+    localStorage.setItem("mapViewState", JSON.stringify({ center, zoom }));
   }
 };
 
@@ -78,7 +78,7 @@ const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect, t
       view: view,
     });
 
-    view.on('change', handleViewChange);
+    view.on("change", handleViewChange);
 
     const clickHandler = (event: any) => {
       if (!mapInstance.current) return;
@@ -93,7 +93,7 @@ const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect, t
     mapInstance.current.on("click", clickHandler);
 
     return () => {
-      view.un('change', handleViewChange);
+      view.un("change", handleViewChange);
       if (saveTimeout) clearTimeout(saveTimeout);
       if (mapInstance.current) {
         mapInstance.current.un("click", clickHandler);

@@ -7,4 +7,4 @@ const router = Router();
 
 router.get('/', healthCheck);
 
-export const healthRouter = router;
+export { router as healthRouter };

@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import {
-  Paper,
   Box,
   Button,
   Typography,
@@ -15,6 +14,7 @@ import {
 } from "@mui/material";
 import { useDropzone, DropzoneOptions } from "react-dropzone";
 import { toast } from "react-toastify";
+import Paper from "@/components/Paper";
 
 interface GeoJsonUploadPanelProps {
   appTheme: any;
@@ -41,7 +41,16 @@ const GeoJsonUploadPanel = ({
     let geometry = json;
 
     if (json.type === "FeatureCollection" && json.features?.length > 0) {
-      geometry = json.features[0].geometry;
+      const polygonFeature = json.features.find(
+        (feature: any) => feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon"
+      );
+
+      if (polygonFeature) {
+        geometry = polygonFeature.geometry;
+      } else {
+        toast.error("No Polygon or MultiPolygon features found in GeoJSON");
+        return false;
+      }
     } else if (json.type === "Feature") {
       geometry = json.geometry;
     }
@@ -113,7 +122,7 @@ const GeoJsonUploadPanel = ({
   const { getRootProps, getInputProps } = useDropzone(dropzoneOptions);
 
   return (
-    <Paper elevation={3} sx={{ p: 2, borderRadius: 2, backgroundColor: appTheme.palette.card.bgColor }}>
+    <Paper appTheme={appTheme} elevation={3} sx={{ p: 2, borderRadius: 2 }}>
       <Box
         {...getRootProps()}
         sx={{
@@ -139,8 +148,8 @@ const GeoJsonUploadPanel = ({
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
         <Button
-          onClick={onSearch}
           disabled={loading || !hasGeojson}
+          onClick={onSearch}
           variant="contained"
           sx={{
             backgroundColor: appTheme.palette.button.bgColor,
@@ -165,12 +174,20 @@ const GeoJsonUploadPanel = ({
           )}
         </Button>
 
-        <Box>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            width: { xs: "100%", sm: "auto" },
+          }}
+        >
           <Button
             onClick={openModal}
             variant="outlined"
             sx={{
-              mr: 1,
+              ml: { xs: "10px", sm: 0 },
+              mb: { xs: "10px", sm: 0 },
+              width: { xs: "100%", sm: "auto" },
               borderColor: appTheme.palette.icon.hoverColor,
               color: appTheme.palette.main.textColor,
               "&:hover": {
@@ -185,6 +202,8 @@ const GeoJsonUploadPanel = ({
             onClick={onClear}
             variant="outlined"
             sx={{
+              width: { xs: "100%", sm: "auto" },
+              ml: { xs: "10px", sm: 1 },
               borderColor: appTheme.palette.icon.hoverColor,
               color: appTheme.palette.main.textColor,
               "&:hover": {
@@ -236,9 +255,9 @@ const GeoJsonUploadPanel = ({
           </Button>
 
           <Button
+            disabled={isProcessing}
             onClick={handlePasteSubmit}
             variant="contained"
-            disabled={isProcessing}
             sx={{
               backgroundColor: appTheme.palette.button.bgColor,
               color: appTheme.palette.button.textColor,

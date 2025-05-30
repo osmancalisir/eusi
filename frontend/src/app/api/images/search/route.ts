@@ -1,10 +1,10 @@
 // frontend/src/app/api/images/search/route.ts
 
 export async function POST(request: Request) {
-  try {
-    const backendUrl = process.env.BACKEND_URL || "http://localhost:4000";
-    const body = await request.json();
+  const backendUrl = process.env.BACKEND_URL || "http://localhost:4000";
 
+  try {
+    const body = await request.json();
     console.log("Proxying GeoJSON search to backend:", JSON.stringify(body));
 
     const res = await fetch(`${backendUrl}/api/images/search`, {
@@ -13,26 +13,16 @@ export async function POST(request: Request) {
       body: JSON.stringify(body),
     });
 
+    const responseText = await res.text();
+    const contentType = res.headers.get("Content-Type") || "text/plain";
+
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error("Backend error:", res.status, errorText);
-      return new Response(
-        JSON.stringify({
-          error: "Backend error",
-          status: res.status,
-          message: errorText,
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      console.error(`Backend error: ${res.status} - ${responseText}`);
     }
 
-    const data = await res.json();
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    return new Response(responseText, {
+      status: res.status,
+      headers: { "Content-Type": contentType },
     });
   } catch (error: any) {
     console.error("Proxy error:", error);

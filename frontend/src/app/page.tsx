@@ -13,7 +13,8 @@ import ImageDetailsCard from "@/components/ImageDetailsCard";
 import SearchResultsPanel from "@/components/SearchResultsPanel";
 import GeoJsonUploadPanel from "@/components/GeoJsonUploadPanel";
 import AoiDetailsCard from "@/components/AoiDetailsCard";
-import { Box, Typography, Paper } from "@mui/material";
+import { Box, Typography } from "@mui/material";
+import Paper from "@/components/Paper";
 
 export default function Home() {
   const [geojson, setGeojson] = useState<any>(null);
@@ -22,11 +23,27 @@ export default function Home() {
   const [selectedAoi, setSelectedAoi] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
   const mapRef = useRef<any>(null);
   const { appTheme, themeMode, toggleTheme } = useAppTheme();
 
+  const fetchOrders = async () => {
+    setOrdersLoading(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000"}/api/orders`);
+      if (!response.ok) throw new Error(`Failed to fetch orders: ${response.status}`);
+      setOrders(await response.json());
+    } catch (error: any) {
+      toast.error(error.message || "Failed to load orders");
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
   useEffect(() => {
     setIsClient(true);
+    fetchOrders();
   }, []);
 
   const handleSetGeojson = (newGeojson: any) => {
@@ -101,8 +118,8 @@ export default function Home() {
         sx={{
           maxWidth: "1400px",
           mx: "auto",
-          width: "100%",
-          display: "flex",
+          width: "80%",
+          height: "80%",
           flexDirection: "column",
         }}
       >
@@ -152,11 +169,11 @@ export default function Home() {
             }}
           >
             <Paper
+              appTheme={appTheme}
               elevation={3}
               sx={{
                 p: 2,
                 borderRadius: 2,
-                backgroundColor: appTheme.palette.card.bgColor,
                 flex: 1,
                 display: "flex",
                 flexDirection: "column",
@@ -194,18 +211,14 @@ export default function Home() {
               }}
             >
               {selectedAoi ? (
-                <AoiDetailsCard
-                  selectedAoi={selectedAoi}
-                  onRemove={handleClear}
-                  appTheme={appTheme}
-                  onBackToList={handleBackFromAoi}
-                />
+                <AoiDetailsCard onRemove={handleClear} appTheme={appTheme} onBackToList={handleBackFromAoi} />
               ) : selectedImage ? (
                 <ImageDetailsCard
                   selectedImage={selectedImage}
                   setSelectedImage={setSelectedImage}
                   appTheme={appTheme}
                   themeMode={themeMode}
+                  onOrderSuccess={fetchOrders}
                 />
               ) : (
                 <SearchResultsPanel
@@ -217,11 +230,11 @@ export default function Home() {
               )}
 
               <Paper
+                appTheme={appTheme}
                 elevation={3}
                 sx={{
                   p: 2,
                   borderRadius: 2,
-                  backgroundColor: appTheme.palette.card.bgColor,
                   flex: 1,
                   display: "flex",
                   flexDirection: "column",
@@ -244,7 +257,9 @@ export default function Home() {
                 >
                   My Orders
                 </Typography>
-                <Box sx={{ flex: 1, overflow: "auto" }}>{isClient && <OrderList appTheme={appTheme} />}</Box>
+                <Box sx={{ flex: 1, maxHeight: 500, overflow: "auto" }}>
+                  {isClient && <OrderList appTheme={appTheme} orders={orders} loading={ordersLoading} />}
+                </Box>
               </Paper>
             </Box>
           </Box>

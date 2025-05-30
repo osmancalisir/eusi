@@ -1,21 +1,18 @@
 // frontend/src/components/AoiDetailsCard.tsx
 
 import React from "react";
-import { Paper, Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
+import Paper from "@/components/Paper";
 
 interface AoiDetailsCardProps {
-  selectedAoi: any;
   onRemove: () => void;
   onBackToList: () => void;
   appTheme: any;
 }
 
-const AoiDetailsCard = ({ selectedAoi, onRemove, onBackToList, appTheme }: AoiDetailsCardProps) => {
+const AoiDetailsCard = ({ onRemove, onBackToList, appTheme }: AoiDetailsCardProps) => {
   return (
-    <Paper
-      elevation={3}
-      sx={{ width: "100%", p: 2, borderRadius: 2, backgroundColor: appTheme.palette.card.bgColor, height: "100%" }}
-    >
+    <Paper appTheme={appTheme} elevation={3} sx={{ width: "100%", p: 2, borderRadius: 2, height: "100%" }}>
       <Typography
         variant="h6"
         component="h2"
