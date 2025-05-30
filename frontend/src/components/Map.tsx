@@ -24,6 +24,19 @@ export interface MapRef {
   clearFeatures: () => void;
 }
 
+const loadViewState = () => {
+  const saved = localStorage.getItem('mapViewState');
+  return saved ? JSON.parse(saved) : null;
+};
+
+const saveViewState = (view: View) => {
+  const center = view.getCenter();
+  const zoom = view.getZoom();
+  if (center && zoom !== undefined) {
+    localStorage.setItem('mapViewState', JSON.stringify({ center, zoom }));
+  }
+};
+
 const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect, themeMode = "dark" }, ref) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<Map | null>(null);
@@ -36,6 +49,23 @@ const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect, t
   useEffect(() => {
     if (!mapRef.current) return;
 
+    const savedView = loadViewState();
+    const initialCenter = savedView?.center || fromLonLat([11.5, 48.1]);
+    const initialZoom = savedView?.zoom || 10;
+
+    const view = new View({
+      center: initialCenter,
+      zoom: initialZoom,
+    });
+
+    let saveTimeout: NodeJS.Timeout | null = null;
+    const handleViewChange = () => {
+      if (saveTimeout) clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        saveViewState(view);
+      }, 500);
+    };
+
     mapInstance.current = new Map({
       target: mapRef.current,
       layers: [
@@ -45,11 +75,10 @@ const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect, t
         }),
         vectorLayer.current,
       ],
-      view: new View({
-        center: fromLonLat([11.5, 48.1]),
-        zoom: 10,
-      }),
+      view: view,
     });
+
+    view.on('change', handleViewChange);
 
     const clickHandler = (event: any) => {
       if (!mapInstance.current) return;
@@ -64,6 +93,8 @@ const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect, t
     mapInstance.current.on("click", clickHandler);
 
     return () => {
+      view.un('change', handleViewChange);
+      if (saveTimeout) clearTimeout(saveTimeout);
       if (mapInstance.current) {
         mapInstance.current.un("click", clickHandler);
         mapInstance.current.setTarget(undefined);
@@ -99,12 +130,14 @@ const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect, t
 
         vectorSource.current.addFeatures(features);
 
-        const extent = vectorSource.current.getExtent();
-        if (extent[0] !== Infinity && mapInstance.current) {
-          mapInstance.current.getView().fit(extent, {
-            padding: [50, 50, 50, 50],
-            duration: 500,
-          });
+        if (features.length > 0 && mapInstance.current) {
+          const extent = vectorSource.current.getExtent();
+          if (extent[0] !== Infinity) {
+            mapInstance.current.getView().fit(extent, {
+              padding: [50, 50, 50, 50],
+              duration: 500,
+            });
+          }
         }
       } catch (error) {
         console.error("Error rendering GeoJSON:", error);
