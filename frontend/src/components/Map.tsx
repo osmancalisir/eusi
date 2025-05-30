@@ -16,7 +16,7 @@ import type { Geometry as GeoJSONGeometry } from "geojson";
 
 interface MapProps {
   geojson: GeoJSONGeometry | null;
-  onFeatureSelect: (feature: any) => void;
+  onFeatureSelect: (feature: any) => void; // eslint-disable-line no-unused-vars
   themeMode?: "light" | "dark";
 }
 
@@ -58,7 +58,8 @@ const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect, t
       zoom: initialZoom,
     });
 
-    let saveTimeout: NodeJS.Timeout | null = null;
+    let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+
     const handleViewChange = () => {
       if (saveTimeout) clearTimeout(saveTimeout);
       saveTimeout = setTimeout(() => {

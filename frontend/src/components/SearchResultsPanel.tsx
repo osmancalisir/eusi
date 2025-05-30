@@ -7,7 +7,7 @@ import { SatelliteImage } from "@/lib/types";
 interface SearchResultsPanelProps {
   images: SatelliteImage[];
   geojson: any;
-  setSelectedImage: (image: SatelliteImage) => void;
+  setSelectedImage: (image: SatelliteImage) => void; // eslint-disable-line no-unused-vars
   appTheme: any;
 }
 

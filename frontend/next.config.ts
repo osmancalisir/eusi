@@ -2,10 +2,6 @@
 
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  exportPathMap: () => ({
-    "/": { page: "/" },
-  }),
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

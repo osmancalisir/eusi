@@ -9,19 +9,12 @@ import Paper from "@/components/Paper";
 
 interface ImageDetailsCardProps {
   selectedImage: SatelliteImage;
-  setSelectedImage: (image: SatelliteImage | null) => void;
+  setSelectedImage: (image: SatelliteImage | null) => void; // eslint-disable-line no-unused-vars
   appTheme: any;
-  themeMode: "light" | "dark";
   onOrderSuccess?: () => void;
 }
 
-const ImageDetailsCard = ({
-  selectedImage,
-  setSelectedImage,
-  appTheme,
-  themeMode,
-  onOrderSuccess,
-}: ImageDetailsCardProps) => {
+const ImageDetailsCard = ({ selectedImage, setSelectedImage, appTheme, onOrderSuccess }: ImageDetailsCardProps) => {
   const handleOrder = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/orders`, {

@@ -217,7 +217,6 @@ export default function Home() {
                   selectedImage={selectedImage}
                   setSelectedImage={setSelectedImage}
                   appTheme={appTheme}
-                  themeMode={themeMode}
                   onOrderSuccess={fetchOrders}
                 />
               ) : (

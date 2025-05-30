@@ -22,7 +22,7 @@ interface GeoJsonUploadPanelProps {
   onClear: () => void;
   loading: boolean;
   hasGeojson: boolean;
-  setGeojson: (geojson: any) => void;
+  setGeojson: (geojson: any) => void; // eslint-disable-line no-unused-vars
 }
 
 const GeoJsonUploadPanel = ({
