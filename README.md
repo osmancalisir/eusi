@@ -1,5 +1,3 @@
-Here are the three professional README files structured for a Staff Engineer perspective:
-
 ### README
 ```markdown
 # Orbital Edge Imaging - Core API Service
@@ -133,3 +131,10 @@ Please note that, you can either create a "Munich.geojson" file and import it or
   ]
 }
 ````
+
+## LLM Tools used:
+- To organise the readme
+- To create and optimize the backend/docker-compose.yml file
+- To create backend/db/migrations/002_sample_data.sql file for sample data
+- To optimize backend/db/init.sh file
+- To simplify some parts of the code without too much technical touch
