@@ -64,6 +64,12 @@ export const searchImagesByGeoJSON = async (
     const geometry = validation.data;
     console.log('Validated GeoJSON geometry:', JSON.stringify(geometry));
     
+    /**
+     * The query could be handled by "ST_Within" as well instead of ST_SetSRID(ST_GeomFromGeoJSON($1), 4326)::geography
+     * However ST_Intersects is more flexible for partial overlaps, while ST_Within requires full containment. PostGIS leverages GiST indexes for O(log n) searches.
+     * https://postgis.net/docs/ST_Intersects.html
+     * https://postgis.net/docs/ST_Within.html
+     */
     const result = await query(
       `SELECT 
         id,
@@ -95,6 +101,7 @@ export const searchImagesByGeoJSON = async (
       body: req.body
     });
     
+    // In production, any production related information should be avoided to share
     res.status(500).json({ 
       error: 'Internal Server Error',
       message: 'Failed to process spatial query',

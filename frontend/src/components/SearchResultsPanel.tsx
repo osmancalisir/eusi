@@ -36,6 +36,11 @@ const SearchResultsPanel = ({ images, geojson, setSelectedImage, appTheme }: Sea
         <List sx={{ maxHeight: 400, overflow: "auto" }}>
           {images.map((image) => (
             <ListItem
+              /**
+               * This key might create collision, a better key can be added to avoid js engine confusion.
+               * One possible better key would be ${image.catalogID}-${image.acquisitionDate}
+               * Since its currently works only with sample data, there is no collison with key, but should be improved
+               */
               key={image.catalogID}
               sx={{
                 borderBottom: "1px solid",

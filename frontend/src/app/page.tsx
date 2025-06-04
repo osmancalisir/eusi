@@ -41,6 +41,7 @@ export default function Home() {
     }
   };
 
+  // This useEffect is without cleanup, there is no memory leak currently
   useEffect(() => {
     setIsClient(true);
     fetchOrders();

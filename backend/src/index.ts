@@ -57,6 +57,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     body: req.body
   });
   
+  // In production, any production related information should be avoided to share
   res.status(500).json({ 
     error: 'Internal Server Error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Please try again later',

@@ -22,6 +22,16 @@ interface GeoJsonUploadPanelProps {
   onClear: () => void;
   loading: boolean;
   hasGeojson: boolean;
+  /**
+   * Using "any" is not the best idea,
+   * currently eslint is angry since geojson is not used and its just bypassed by no-unused-vars,
+   * but its in use by the system itself
+   * So, this is currently ignored for this reason. One another solution could be:
+   * import { Geometry } from 'geojson';
+   * setGeojson: (geojson: Geometry) => void;
+   * but still requires adding eslint-disable-line no-unused-vars line
+   * This is not an error, but an eslint issue
+   */
   setGeojson: (geojson: any) => void; // eslint-disable-line no-unused-vars
 }
 
