@@ -1,10 +1,11 @@
 // frontend/src/app/page.tsx
 
 "use client";
-import React, { useState, useRef, useEffect } from "react";
-import Map from "@/components/Map";
+
+import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Map from "@/components/Map";
 import { SatelliteImage } from "@/lib/types";
 import ThemeToggle from "@/components/ThemeToggle";
 import useAppTheme from "@/components/ThemeToggle/hook/index";
@@ -25,10 +26,9 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
-  const mapRef = useRef<any>(null);
   const { appTheme, themeMode, toggleTheme } = useAppTheme();
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setOrdersLoading(true);
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000"}/api/orders`);
@@ -39,12 +39,12 @@ export default function Home() {
     } finally {
       setOrdersLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     setIsClient(true);
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
   const handleSetGeojson = (newGeojson: any) => {
     setGeojson(newGeojson);
@@ -52,7 +52,15 @@ export default function Home() {
     setSelectedAoi(null);
   };
 
-  const searchImages = async () => {
+  const handleClearMap = useCallback(() => {
+    setGeojson(null);
+    setImages([]);
+    setSelectedImage(null);
+    setSelectedAoi(null);
+    toast.info("Map cleared successfully");
+  }, []);
+
+  const searchImages = useCallback(async () => {
     if (!geojson) {
       toast.warn("Please upload a GeoJSON file first");
       return;
@@ -80,17 +88,9 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [geojson]);
 
-  const handleClear = () => {
-    setGeojson(null);
-    setImages([]);
-    setSelectedImage(null);
-    setSelectedAoi(null);
-    mapRef.current?.clearFeatures();
-  };
-
-  const handleFeatureSelect = (feature: any) => {
+  const handleFeatureSelect = useCallback((feature: any) => {
     if (feature.type === "aoi") {
       setSelectedAoi(feature);
       setSelectedImage(null);
@@ -98,11 +98,11 @@ export default function Home() {
       setSelectedImage(feature);
       setSelectedAoi(null);
     }
-  };
+  }, []);
 
-  const handleBackFromAoi = () => {
+  const handleBackFromAoi = useCallback(() => {
     setSelectedAoi(null);
-  };
+  }, []);
 
   return (
     <Box
@@ -180,13 +180,13 @@ export default function Home() {
                 minHeight: { xs: "300px", sm: "400px", md: "auto" },
               }}
             >
-              <Map ref={mapRef} geojson={geojson} onFeatureSelect={handleFeatureSelect} themeMode={themeMode} />
+              <Map geojson={geojson} onFeatureSelect={handleFeatureSelect} themeMode={themeMode} />
             </Paper>
 
             <GeoJsonUploadPanel
               appTheme={appTheme}
               onSearch={searchImages}
-              onClear={handleClear}
+              onClear={handleClearMap}
               loading={loading}
               hasGeojson={!!geojson}
               setGeojson={handleSetGeojson}
@@ -211,7 +211,7 @@ export default function Home() {
               }}
             >
               {selectedAoi ? (
-                <AoiDetailsCard onRemove={handleClear} appTheme={appTheme} onBackToList={handleBackFromAoi} />
+                <AoiDetailsCard onRemove={handleClearMap} appTheme={appTheme} onBackToList={handleBackFromAoi} />
               ) : selectedImage ? (
                 <ImageDetailsCard
                   selectedImage={selectedImage}
