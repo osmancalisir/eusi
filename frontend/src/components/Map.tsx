@@ -146,6 +146,11 @@ const MapComponent = forwardRef<MapRef, MapProps>(({ geojson, onFeatureSelect, t
     }
   }, [geojson, fillColor, strokeColor]);
 
+  /**
+   * The "useImperativeHandle" hook forces parent components to use imperative commands
+   * I used this as the latest alternative since clearing the file from the system somehow did not worked
+   * Even though the map is not showing the location anymore, it simply keep it.
+   */
   useImperativeHandle(ref, () => ({
     clearFeatures: () => vectorSource.current.clear(),
   }));
