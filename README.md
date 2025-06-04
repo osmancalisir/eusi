@@ -138,3 +138,6 @@ Please note that, you can either create a "Munich.geojson" file and import it or
 - To create backend/db/migrations/002_sample_data.sql file for sample data
 - To optimize backend/db/init.sh file
 - To simplify some parts of the code without too much technical touch
+
+## Architecture in high level:
+- https://miro.com/app/board/uXjVIsZhVkI=/?share_link_id=130969554309
